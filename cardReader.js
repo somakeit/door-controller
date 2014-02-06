@@ -6,23 +6,26 @@ function CardReader(device, knownCardsFile) {
   winston.log('info',"Loading reader for device/file '%s' with known cards file '%s'", device, knownCardsFile);
   this.device = device; //TODO throw if unset
   this.knownCards = {};
+  this.cardsFile = knownCardsFile;
   this.readStream = fs.createReadStream(device); //TODO throw if unset
 
-  loadKnownCards(knownCardsFile, this.knownCards);
+  this._loadKnownCards();
   //Watch for new file
+  var self = this;
   fs.watchFile(knownCardsFile, function(curr,prev) {
     if (curr.mtime != prev.mtime) {
       winston.log('info','cards file updated, reloading...');
-      loadKnownCards(knownCardsFile, this.knownCards);
+      self._loadKnownCards();
     }   
   });
 }
 
-function loadKnownCards(cardsFile, knownCards){
-  var data = fs.readFileSync(cardsFile, {encoding: "utf8"});
+CardReader.prototype._loadKnownCards = function (){
+  var data = fs.readFileSync(this.cardsFile, {encoding: "utf8"});
   //TODO: explicitly catch invalid parse?
-  knownCards = JSON.parse(data);
-  winston.log('info', "loaded %s cards from file", (Object.keys(knownCards)).length);
+  this.knownCards = JSON.parse(data);
+  //For some reason via the watchFile callback the above doesn't update us in memory... :s
+  winston.log('info', "loaded %s cards from file", (Object.keys(this.knownCards)).length);
 }
 
 CardReader.prototype.read = function(callback) {
@@ -67,7 +70,7 @@ CardReader.prototype.onFoundCard = function(callback) {
   this.read(function(cardId,onOff){
     var card = knownCards[cardId];
     if(card){
-      winston.log('info',"Found card belongning to %s",card);
+      winston.log('info',"Found card belongning to %s",card.name);
       callback(card,onOff);
     }else{
       //TODO: throw? warn only?
