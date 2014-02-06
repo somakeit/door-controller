@@ -9,7 +9,7 @@ exports.tesParsetData1 = function(test){
   var reader = new CardReader('test.data', cards);
 
   var foundArray = [];
-  var expectedArray = ["0430072e1e000000 on", "04a61a5ec4000000 on","0430072e1e000000 off" ];
+  var expectedArray = ["30072e1e on", "a61a5ec4 on","30072e1e off" ];
 
   reader.read(function(id,state){ 
     foundArray.push(id+ " "+state) 
@@ -29,7 +29,7 @@ exports.testParseData2 = function(test){
   var reader = new CardReader('test.data2', cards);
 
   var foundArray = [];
-  var expectedArray = [ '000004aef3f3ba00 on', '000004aef3f3ba00 off', '000004aef3f3ba00 on', '000004aef3f3ba00 off' ];
+  var expectedArray = [ 'aef3f3ba on', 'aef3f3ba off', 'aef3f3ba on', 'aef3f3ba off' ];
 
   reader.read(function(id,state){ 
     foundArray.push(id+ " "+state) 

@@ -42,23 +42,29 @@ CardReader.prototype.read = function(callback) {
                        : onOff == '02' ? 'off' 
                        : 'unknown';
         if(onOffLabel !== 'unknown' ){
-          // 8byte [16char](?)  card id - Might be shorter - 5byte?
-          // Current tested cards seem to be about 5, but I don't know how long a card id really
-          // should be, so might be safer to read longer? It will be important to fix this
-          // before we start storing known card id's
-          //  -Reading one of my cards with my phone NFC tag reader I get an ID that is 4 bytes 
-          //   long. The usb reader gives the same id but with a leading x04. Perhaps the x04 is
-          //   the length of the id - My NFC app does say UID[4] as before the id.
-          //  -some cards seem to have lead padding of nulls before the x04. Possibly want to cope with 
-          //  that if we do the above
-          var cardId = rs.read(16);
+          //next read to get rid of any nulls (there are often several)
+          chunk = rs.read(2);
+          var i=0;
+          while(chunk == '00'){
+            chunk=rs.read(2);
+            i++;
+            if(i==10){
+              winston.log('warn','warning, found 10 null bytes instead of the card id');
+              return;
+            }
+          }
+          // next byte is the length field. (actually are any of the prior nulls part of a really long length field?)
+          //TODO: AAARGH - no internet. How do you convert a hex string x0a to an integer (10) in nodejs?
+          var length = chunk;
+          // Finally read the number of bytes to get our id
+          var cardId = rs.read(length*2);
           winston.log('info','Card %s is %s', cardId,onOffLabel);
           if(callback){
             callback(cardId,onOffLabel);
           }
         }else{
           //TODO: throw?
-          winston.error("Unknown state byte received from reader '%s'",onOffLabel);
+          winston.log('error',"Unknown state byte received from reader '%s'",onOffLabel);
         }
       }
     }
