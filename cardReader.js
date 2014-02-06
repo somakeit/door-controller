@@ -9,6 +9,7 @@ function CardReader(device, knownCardsFile) {
   this.readStream = fs.createReadStream(device); //TODO throw if unset
 
   data = fs.readFileSync(knownCardsFile, {encoding: "utf8"});
+  //TODO: if data is invalid we just exit - why? Why didn't we log?
   this.knownCards = JSON.parse(data);
 }
 
@@ -33,6 +34,8 @@ CardReader.prototype.read = function(callback) {
           //  -Reading one of my cards with my phone NFC tag reader I get an ID that is 4 bytes 
           //   long. The usb reader gives the same id but with a leading x04. Perhaps the x04 is
           //   the length of the id - My NFC app does say UID[4] as before the id.
+          //  -some cards seem to have lead padding of nulls before the x04. Possibly want to cope with 
+          //  that if we do the above
           var cardId = rs.read(16);
           winston.log('info','Card %s is %s', cardId,onOffLabel);
           if(callback){
