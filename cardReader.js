@@ -1,16 +1,28 @@
 var fs = require('fs');
 var winston = require('winston');
-winston.handleExceptions();
+//winston.handleExceptions(); //TODO: need to give explicit handler
 
 function CardReader(device, knownCardsFile) {
   winston.log('info',"Loading reader for device/file '%s' with known cards file '%s'", device, knownCardsFile);
   this.device = device; //TODO throw if unset
-  this.knownCards = [];
+  this.knownCards = {};
   this.readStream = fs.createReadStream(device); //TODO throw if unset
 
-  data = fs.readFileSync(knownCardsFile, {encoding: "utf8"});
-  //TODO: if data is invalid we just exit - why? Why didn't we log?
-  this.knownCards = JSON.parse(data);
+  loadKnownCards(knownCardsFile, this.knownCards);
+  //Watch for new file
+  fs.watchFile(knownCardsFile, function(curr,prev) {
+    if (curr.mtime != prev.mtime) {
+      winston.log('info','cards file updated, reloading...');
+      loadKnownCards(knownCardsFile, this.knownCards);
+    }   
+  });
+}
+
+function loadKnownCards(cardsFile, knownCards){
+  var data = fs.readFileSync(cardsFile, {encoding: "utf8"});
+  //TODO: explicitly catch invalid parse?
+  knownCards = JSON.parse(data);
+  winston.log('info', "loaded %s cards from file", (Object.keys(knownCards)).length);
 }
 
 CardReader.prototype.read = function(callback) {
