@@ -66,11 +66,11 @@ CardReader.prototype.read = function(callback) {
 };
 
 CardReader.prototype.onFoundCard = function(callback) {
-  var knownCards = this.knownCards;
+  var self = this;
   this.read(function(cardId,onOff){
-    var card = knownCards[cardId];
+    var card = self.knownCards[cardId];
     if(card){
-      winston.log('info',"Found card belongning to %s",card.name);
+      winston.log('info',"Found card belonging to %s",card.name);
       callback(card,onOff);
     }else{
       //TODO: throw? warn only?
