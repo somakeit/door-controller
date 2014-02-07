@@ -1,18 +1,18 @@
 var fs = require('fs');
 //winston.handleExceptions(); //TODO: need to give explicit handler
 
-function CardReader(device, knownCardsFile, params) {
+function CardReader(params) {
   this.winston = params.winston;
-  this.winston.log('info',"Loading reader for device/file '%s' with known cards file '%s'", device, knownCardsFile);
-  this.device = device; //TODO throw if unset
+  this.device = params.device; //TODO throw if unset
+  this.cardsFile = params.knownCardsFile;
+  this.winston.log('info',"Loading reader for device/file '%s' with known cards file '%s'", this.device, this.knownCardsFile);
   this.knownCards = {};
-  this.cardsFile = knownCardsFile;
-  this.readStream = fs.createReadStream(device); //TODO throw if unset
+  this.readStream = fs.createReadStream(this.device); //TODO throw if unset
 
   this._loadKnownCards();
   //Watch for new file
   var self = this;
-  fs.watchFile(knownCardsFile, function(curr,prev) {
+  fs.watchFile(this.knownCardsFile, function(curr,prev) {
     if (curr.mtime != prev.mtime) {
       self.winston.log('info','cards file updated, reloading...');
       self._loadKnownCards();
