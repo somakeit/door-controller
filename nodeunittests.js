@@ -1,12 +1,13 @@
 var cards = 'test.knownCards.json';
 var events = require('events')
+var winston = require('winston');
 emitter = new events.EventEmitter()
 
 exports.tesParsetData1 = function(test){
   test.expect(1);
 
   var CardReader = require('./cardReader.js');
-  var reader = new CardReader('test.data', cards);
+  var reader = new CardReader('test.data', cards, {"winston":winston});
 
   var foundArray = [];
   var expectedArray = ["30072e1e on", "a61a5ec4 on","30072e1e off" ];
@@ -26,7 +27,7 @@ exports.testParseData2 = function(test){
   test.expect(1);
 
   var CardReader = require('./cardReader.js');
-  var reader = new CardReader('test.data2', cards);
+  var reader = new CardReader('test.data2', cards, {"winston":winston});
 
   var foundArray = [];
   var expectedArray = [ 'aef3f3ba on', 'aef3f3ba off', 'aef3f3ba on', 'aef3f3ba off' ];
@@ -46,7 +47,8 @@ exports.testFoundCardData1 = function(test){
   test.expect(1);
 
   var CardReader = require('./cardReader.js');
-  var reader = new CardReader('test.data', cards);
+  var reader = new CardReader('test.data', cards, {"winston":winston});
+;
 
   var foundArray = [];
   var expectedArray = [ 'Test card 3 on', 'Test card 2 on', 'Test card 3 off'];
@@ -66,7 +68,7 @@ exports.testFoundCardData2 = function(test){
   test.expect(1);
 
   var CardReader = require('./cardReader.js');
-  var reader = new CardReader('test.data2', cards);
+  var reader = new CardReader('test.data2', cards, {"winston":winston});
 
   var foundArray = [];
   var expectedArray = [ 'Test card 4 on', 'Test card 4 off', 'Test card 4 on', 'Test card 4 off'];
@@ -87,11 +89,11 @@ exports.testCardDataValues = function(test){
   test.expect(6);
 
   var CardReader = require('./cardReader.js');
-  var reader = new CardReader('test.data', cards);
+  var reader = new CardReader('test.data', cards, {"winston":winston});
   Object.keys(reader.knownCards).forEach(function(element, key, _array) {
     test.strictEqual(typeof(reader.knownCards[element].name), 'string');
   });
-  var reader = new CardReader('test.data2', cards);
+  var reader = new CardReader('test.data2', cards, {"winston":winston});
   Object.keys(reader.knownCards).forEach(function(element, key, _array) {
     test.strictEqual(typeof(reader.knownCards[element].name), 'string');
   });
@@ -109,7 +111,7 @@ exports.testErrorNoFiles = function(test){
   //});
 
   test.throws(function(){
-    new CardReader('test.data','nofile');
+    new CardReader('test.data','nofile', {"winston":winston});
   });
   //TODO: there must be a better way than using a timeout to switch active contexts
   //setTimeout(function() { 

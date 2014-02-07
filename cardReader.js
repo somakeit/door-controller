@@ -1,9 +1,9 @@
 var fs = require('fs');
-var winston = require('winston');
 //winston.handleExceptions(); //TODO: need to give explicit handler
 
-function CardReader(device, knownCardsFile) {
-  winston.log('info',"Loading reader for device/file '%s' with known cards file '%s'", device, knownCardsFile);
+function CardReader(device, knownCardsFile, params) {
+  this.winston = params.winston;
+  this.winston.log('info',"Loading reader for device/file '%s' with known cards file '%s'", device, knownCardsFile);
   this.device = device; //TODO throw if unset
   this.knownCards = {};
   this.cardsFile = knownCardsFile;
@@ -14,7 +14,7 @@ function CardReader(device, knownCardsFile) {
   var self = this;
   fs.watchFile(knownCardsFile, function(curr,prev) {
     if (curr.mtime != prev.mtime) {
-      winston.log('info','cards file updated, reloading...');
+      self.winston.log('info','cards file updated, reloading...');
       self._loadKnownCards();
     }   
   });
@@ -25,11 +25,12 @@ CardReader.prototype._loadKnownCards = function (){
   //TODO: explicitly catch invalid parse?
   this.knownCards = JSON.parse(data);
   //For some reason via the watchFile callback the above doesn't update us in memory... :s
-  winston.log('info', "loaded %s cards from file", (Object.keys(this.knownCards)).length);
+  this.winston.log('info', "loaded %s cards from file", (Object.keys(this.knownCards)).length);
 }
 
 CardReader.prototype.read = function(callback) {
   var rs = this.readStream;
+  var self = this;
   rs.setEncoding('hex');
   rs.on('readable', function() {
     var chunk;
@@ -49,7 +50,7 @@ CardReader.prototype.read = function(callback) {
             chunk=rs.read(2);
             i++;
             if(i==10){
-              winston.log('warn','warning, found 10 null bytes instead of the card id');
+              self.winston.log('warn','warning, found 10 null bytes instead of the card id');
               return;
             }
           }
@@ -58,13 +59,13 @@ CardReader.prototype.read = function(callback) {
           var length = chunk;
           // Finally read the number of bytes to get our id
           var cardId = rs.read(length*2);
-          winston.log('info','Card %s is %s', cardId,onOffLabel);
+          self.winston.log('info','Card %s is %s', cardId,onOffLabel);
           if(callback){
             callback(cardId,onOffLabel);
           }
         }else{
           //TODO: throw?
-          winston.log('error',"Unknown state byte received from reader '%s'",onOffLabel);
+          self.winston.log('error',"Unknown state byte received from reader '%s'",onOffLabel);
         }
       }
     }
@@ -76,11 +77,11 @@ CardReader.prototype.onFoundCard = function(callback) {
   this.read(function(cardId,onOff){
     var card = self.knownCards[cardId];
     if(card){
-      winston.log('info',"Found card belonging to %s",card.name);
+      self.winston.log('info',"Found card belonging to %s",card.name);
       callback(card,onOff);
     }else{
       //TODO: throw? warn only?
-      winston.warn("Unknown card found with id %s",cardId);
+      self.winston.warn("Unknown card found with id %s",cardId);
     }
   });
 };
