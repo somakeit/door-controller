@@ -1,6 +1,6 @@
 {
-  "30072e1e":{"name":"Test card 1"},
-  "a61a5ec4":{"name":"Test card 2"},
-  "30072e1e":{"name":"Test card 3"},
-  "aef3f3ba":{"name":"Test card 4"}
+  "30072e1e":{"username":"Test card 1", "fullname":"Card for Test user 1"},
+  "a61a5ec4":{"username":"Test card 2", "fullname":"Card for Test user 2"},
+  "30072e1e":{"username":"Test card 3", "fullname":"Card for Test user 3"},
+  "aef3f3ba":{"username":"Test card 4", "fullname":"Card for Test user 4"}
 }

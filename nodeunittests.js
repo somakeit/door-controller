@@ -54,7 +54,7 @@ exports.testFoundCardData1 = function(test){
   var expectedArray = [ 'Test card 3 on', 'Test card 2 on', 'Test card 3 off'];
 
   reader.onFoundCard( function(card,state){
-    foundArray.push(card.name+ " "+state) 
+    foundArray.push(card.username+ " "+state) 
   });
 
   //TODO: there must be a better way than using a timeout to switch active contexts
@@ -74,7 +74,7 @@ exports.testFoundCardData2 = function(test){
   var expectedArray = [ 'Test card 4 on', 'Test card 4 off', 'Test card 4 on', 'Test card 4 off'];
 
   reader.onFoundCard( function(card,state){
-    foundArray.push(card.name+ " "+state) 
+    foundArray.push(card.username+ " "+state) 
   });
 
   //TODO: there must be a better way than using a timeout to switch active contexts
@@ -84,18 +84,18 @@ exports.testFoundCardData2 = function(test){
   }, 100);
 };
 
-// Test that each card object in our test data has a .name field
+// Test that each card object in our test data has a .username field
 exports.testCardDataValues = function(test){
   test.expect(6);
 
   var CardReader = require('./cardReader.js');
   var reader = new CardReader( {'device': 'test.data', 'knownCardsFile': cards, 'winston':winston}) ;
   Object.keys(reader.knownCards).forEach(function(element, key, _array) {
-    test.strictEqual(typeof(reader.knownCards[element].name), 'string');
+    test.strictEqual(typeof(reader.knownCards[element].username), 'string');
   });
   var reader = new CardReader( {'device': 'test.data2', 'knownCardsFile': cards, 'winston':winston}) ;
   Object.keys(reader.knownCards).forEach(function(element, key, _array) {
-    test.strictEqual(typeof(reader.knownCards[element].name), 'string');
+    test.strictEqual(typeof(reader.knownCards[element].username), 'string');
   });
   test.done();
 };
