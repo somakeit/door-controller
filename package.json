@@ -4,7 +4,7 @@
   "description": "door controller",
   "main": "cardReader.js",
   "scripts": {
-    "test": "nodeunit nodeunittests.js"
+    "test": "./node_modules/.bin/nodeunit nodeunittests.js"
   },
   "repository": {
     "type": "git",
@@ -18,5 +18,8 @@
   "dependencies": {
     "winston": "~0.7.2",
     "bonescript": "~0.2.4"
+  },
+  "devDependencies": {
+    "nodeunit": "~0.8.4"
   }
 }
