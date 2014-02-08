@@ -3,7 +3,7 @@ var events = require('events')
 var winston = require('winston');
 emitter = new events.EventEmitter()
 
-exports.tesParsetData1 = function(test){
+exports.testParseData1 = function(test){
   test.expect(1);
 
   var CardReader = require('./cardReader.js');
