@@ -2,6 +2,17 @@ var fs = require('fs');
 //winston.handleExceptions(); //TODO: need to give explicit handler
 
 function CardReader(params) {
+  // Early binding makes it easy to remove event listeners.
+  var methodsToBind = ['_knownCardsFileChanged', '_parseKnownCardsData'];
+  for (var i = 0, key; key = methodsToBind[i++];) {
+    try {
+      this[key] = this[key].bind(this);
+    } catch (e) {
+      console.error("COULD NOT BIND "+key);
+      throw e;
+    }
+  }
+
   this.winston = params.winston;
   this.device = params.device; //TODO throw if unset
   this.cardsFile = params.knownCardsFile;
@@ -10,14 +21,22 @@ function CardReader(params) {
   this.readStream = fs.createReadStream(this.device); //TODO throw if unset
 
   this._loadKnownCardsSync();
+
   //Watch for new file
-  var self = this;
-  fs.watchFile(this.knownCardsFile, function(curr,prev) {
-    if (curr.mtime != prev.mtime) {
-      self.winston.log('info','cards file updated, reloading...');
-      self._loadKnownCards();
-    }
-  });
+  fs.watchFile(this.knownCardsFile, this._knownCardsFileChanged);
+}
+
+CardReader.prototype.destroy = function() {
+  // We must unlisten everything we've listened to.
+  fs.unwatchFile(this.knownCardsFile, this._knownCardsFileChanged);
+  this.readStream.removeAllListeners();
+}
+
+CardReader.prototype._knownCardsFileChanged = function(curr,prev) {
+  if (curr.mtime != prev.mtime) {
+    this.winston.log('info','cards file updated, reloading...');
+    this._loadKnownCards();
+  }
 }
 
 CardReader.prototype._loadKnownCardsSync = function() {
@@ -31,7 +50,7 @@ CardReader.prototype._loadKnownCardsSync = function() {
 }
 
 CardReader.prototype._loadKnownCards = function() {
-  fs.readFile(this.cardsFile, {encoding: "utf8"}, this._parseKnownCardsData.bind(this));
+  fs.readFile(this.cardsFile, {encoding: "utf8"}, this._parseKnownCardsData);
 }
 
 CardReader.prototype._parseKnownCardsData = function(err, data) {

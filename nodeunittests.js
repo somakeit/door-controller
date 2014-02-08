@@ -18,6 +18,7 @@ exports.testParseData1 = function(test){
 
   //TODO: there must be a better way than using a timeout to switch active contexts
   setTimeout(function() { 
+    reader.destroy();
     test.deepEqual(foundArray, expectedArray, "Data didn't match");
     test.done() ;
   }, 100);
@@ -39,6 +40,7 @@ exports.testParseData2 = function(test){
   //TODO: there must be a better way than using a timeout to switch active contexts
   setTimeout(function() { 
     test.deepEqual(foundArray, expectedArray, "Data didn't match");
+    reader.destroy();
     test.done() ;
   }, 100);
 };
@@ -60,6 +62,7 @@ exports.testFoundCardData1 = function(test){
   //TODO: there must be a better way than using a timeout to switch active contexts
   setTimeout(function() { 
     test.deepEqual(foundArray, expectedArray, "Data didn't match");
+    reader.destroy();
     test.done() ;
   }, 100);
 };
@@ -80,6 +83,7 @@ exports.testFoundCardData2 = function(test){
   //TODO: there must be a better way than using a timeout to switch active contexts
   setTimeout(function() { 
     test.deepEqual(foundArray, expectedArray, "Data didn't match");
+    reader.destroy();
     test.done() ;
   }, 100);
 };
@@ -93,10 +97,12 @@ exports.testCardDataValues = function(test){
   Object.keys(reader.knownCards).forEach(function(element, key, _array) {
     test.strictEqual(typeof(reader.knownCards[element].username), 'string');
   });
-  var reader = new CardReader( {'device': 'test.data2', 'knownCardsFile': cards, 'winston':winston}) ;
+  reader.destroy();
+  reader = new CardReader( {'device': 'test.data2', 'knownCardsFile': cards, 'winston':winston}) ;
   Object.keys(reader.knownCards).forEach(function(element, key, _array) {
     test.strictEqual(typeof(reader.knownCards[element].username), 'string');
   });
+  reader.destroy();
   test.done();
 };
 
