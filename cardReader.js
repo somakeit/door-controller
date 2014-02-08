@@ -9,23 +9,46 @@ function CardReader(params) {
   this.knownCards = {};
   this.readStream = fs.createReadStream(this.device); //TODO throw if unset
 
-  this._loadKnownCards();
+  this._loadKnownCardsSync();
   //Watch for new file
   var self = this;
   fs.watchFile(this.knownCardsFile, function(curr,prev) {
     if (curr.mtime != prev.mtime) {
       self.winston.log('info','cards file updated, reloading...');
       self._loadKnownCards();
-    }   
+    }
   });
 }
 
-CardReader.prototype._loadKnownCards = function (){
-  var data = fs.readFileSync(this.cardsFile, {encoding: "utf8"});
-  //TODO: explicitly catch invalid parse?
-  this.knownCards = JSON.parse(data);
-  //For some reason via the watchFile callback the above doesn't update us in memory... :s
-  this.winston.log('info', "loaded %s cards from file", (Object.keys(this.knownCards)).length);
+CardReader.prototype._loadKnownCardsSync = function() {
+  var data = null, err = null;
+  try {
+    data = fs.readFileSync(this.cardsFile, {encoding: "utf8"});
+  } catch (e) {
+    err = e;
+  }
+  this._parseKnownCardsData(err, data);
+}
+
+CardReader.prototype._loadKnownCards = function() {
+  fs.readFile(this.cardsFile, {encoding: "utf8"}, this._parseKnownCardsData.bind(this));
+}
+
+CardReader.prototype._parseKnownCardsData = function(err, data) {
+  function handleError(err) {
+    this.winston.log('error', "Could not read cards from file: " + err.message);
+    this.winston.log('silly', err.stack);
+  }
+  try {
+    if (err) throw err;
+    var cards = JSON.parse(data);
+    if (typeof cards != 'object') throw new Error("data was not an object");
+    this.knownCards = cards;
+    //For some reason via the watchFile callback the above doesn't update us in memory... :s
+    this.winston.log('info', "loaded %s cards from file", (Object.keys(this.knownCards)).length);
+  } catch (e) {
+    return handleError(e);
+  }
 }
 
 CardReader.prototype.read = function(callback) {
