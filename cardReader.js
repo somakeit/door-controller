@@ -1,11 +1,10 @@
 var fs = require('fs');
-var http = require('http');
-var https = require('https');
+var requestify = require('requestify');
 //winston.handleExceptions(); //TODO: need to give explicit handler
 
 function CardReader(params) {
   // Early binding makes it easy to remove event listeners.
-  var methodsToBind = ['_knownCardsFileChanged', '_parseKnownCardsData'];
+  var methodsToBind = ['_knownCardsFileChanged', '_parseKnownCardsData', 'setHttpRefresher'];
   for (var i = 0, key; key = methodsToBind[i++];) {
     try {
       this[key] = this[key].bind(this);
@@ -56,9 +55,10 @@ CardReader.prototype._loadKnownCards = function() {
 }
 
 CardReader.prototype._parseKnownCardsData = function(err, data) {
+  var self = this;
   function handleError(err) {
-    this.winston.log('error', "Could not read cards from file: " + err.message);
-    this.winston.log('silly', err.stack);
+    self.winston.log('error', "Could not read cards from file: " + err.message);
+    self.winston.log('silly', err.stack);
   }
   try {
     if (err) throw err;
@@ -133,27 +133,28 @@ CardReader.prototype.onFoundCard = function(callback) {
 // set http refresh url and interval, Interval is in minutes
 CardReader.prototype.setHttpRefresher = function(httpurl, refreshinterval) {
   var interval = refreshinterval * 60 * 1000;
-  var self = this;
-  this.winston.log('info','loading new file from %s', httpurl);
-  var options = { 'headers': {'Cookie':'SECRET=whateveryouwanthereitsnotimportant'},
-                  'url': httpurl};
 
-  //-b 'SECRET=whateveryouwanthereitsnotimportant'
-  http.get(options, function(res){
-    res.on('data', function(d) {
-      console.log(d);
-      var newCards = JSON.parse(d);
-      //TODO validate contents
-      this.knownCards = newCards;
-      this.winston.log('info', "loaded %s cards from web", (Object.keys(this.knownCards)).length);
-    });
-  }).on('error',function(e){
-    self.winston.log('error','error loading new file from %s',httpurl);
-    self.winston.log('error', e);
-  });
+  this._doRefreshCardsFromHttp(httpurl);
   setTimeout(function() { 
-    self.setHttpRefresher(httpurl,refreshinterval);
+    this._doRefreshCardsFromHttp(httpurl);
   }, interval);
+}
+
+CardReader.prototype._doRefreshCardsFromHttp = function(httpurl) {
+  this.winston.log('info','loading new file from %s', httpurl);
+  var self = this;
+  requestify.get( httpurl, {
+               cookies: {'SECRET': 'whateveryouwanthereitsnotimportant'}
+              }).then( function(response) {
+    console.log( response.getBody() );
+    //TODO: validate card data
+    // load card data
+    // write card data to file (in case we restart without network)
+  }).catch(function (error) {
+    // Handle any error from all above steps
+    self.winston.log('error', 'Got ERROR loading cards from http. Got code ',error.code);
+    self.winston.log('error', error.body);
+  });
 }
 
 module.exports = CardReader;
