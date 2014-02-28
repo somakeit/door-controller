@@ -3,6 +3,10 @@ var winston = require('winston');
 var CardReader = require('./cardReader.js');
 var b = require('bonescript');
 
+//set up logging
+winston.remove(winston.transports.Console);
+winston.add(winston.transports.Console, {level:'warn', colorize:'false'});
+
 // Options
 var openTime = 10 * 1000; //10 sec open time
 var door = "P8_10";
