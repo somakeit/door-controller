@@ -4,7 +4,7 @@ var CardReader = require('./cardReader.js');
 var b = require('bonescript');
 
 // Options
-var openTime = 4 * 1000; //4 sec open time
+var openTime = 10 * 1000; //10 sec open time
 var door = "P8_10";
 var led = "USR3";
 
