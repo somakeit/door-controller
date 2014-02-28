@@ -9,7 +9,7 @@ function CardReader(params) {
     try {
       this[key] = this[key].bind(this);
     } catch (e) {
-      console.error("COULD NOT BIND "+key);
+      winston.log('error',"COULD NOT BIND "+key);
       throw e;
     }
   }
@@ -64,6 +64,7 @@ CardReader.prototype._parseKnownCardsData = function(err, data) {
     if (err) throw err;
     var cards = JSON.parse(data);
     if (typeof cards != 'object') throw new Error("data was not an object");
+    //TODO: validate card data? Probably want to fail if we have less than at least one card listed
     this.knownCards = cards;
     //For some reason via the watchFile callback the above doesn't update us in memory... :s
     this.winston.log('info', "loaded %s cards from file", (Object.keys(this.knownCards)).length);
@@ -133,6 +134,11 @@ CardReader.prototype.onFoundCard = function(callback) {
 // set http refresh url and interval, Interval is in minutes
 CardReader.prototype.setHttpRefresher = function(httpurl, refreshinterval) {
   var interval = refreshinterval * 60 * 1000;
+  
+  if(!fs.existsSync("secret")) {
+    throw("Error setting up new httpRefresher, secret not set");
+  }
+  this.restSecret = fs.readFileSync('secret', {encoding: "utf8"}).trim();
 
   this._doRefreshCardsFromHttp(httpurl);
   setTimeout(function() { 
@@ -144,17 +150,32 @@ CardReader.prototype._doRefreshCardsFromHttp = function(httpurl) {
   this.winston.log('info','loading new file from %s', httpurl);
   var self = this;
   requestify.get( httpurl, {
-               cookies: {'SECRET': 'whateveryouwanthereitsnotimportant'}
+               cookies: {'SECRET': this.restSecret}
               }).then( function(response) {
-    console.log( response.getBody() );
-    //TODO: validate card data
-    // load card data
-    // write card data to file (in case we restart without network)
+    var newCards = response.getBody();
+    self.winston.log('info', "Loaded new cards from http. Found %s cards", Object.keys(newCards).length);
+    //TODO: validate card data? Probably want to fail if we have less than at least one card listed
+    self._saveNewCards(newCards);
   }).catch(function (error) {
     // Handle any error from all above steps
     self.winston.log('error', 'Got ERROR loading cards from http. Got code ',error.code);
     self.winston.log('error', error.body);
   });
 }
+
+CardReader.prototype._saveNewCards = function(newCards) {
+  var self = this;
+  if(this.knownCards != newCards){
+    this.winston.log('info', "Got a new list of cards, updating");
+    if(this.cardsFile){
+      this.winston.log('verbose',"Saving list of new cards to file '%s'", this.cardsFile);
+      fs.writeFile(self.cardsFile, JSON.stringify(newCards, null, 4), function(err) {
+        if(err) {
+          self.winston.log('error', "Error saving new cards file to %s", self.cardsFile, err);
+        }
+      });
+    }
+  }
+};
 
 module.exports = CardReader;
