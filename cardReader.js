@@ -58,7 +58,7 @@ CardReader.prototype._parseKnownCardsData = function(err, data) {
   var self = this;
   function handleError(err) {
     self.winston.log('error', "Could not read cards from file: " + err.message);
-    self.winston.log('silly', err.stack);
+    self.winston.log('verbose', err.stack);
   }
   try {
     if (err) throw err;
@@ -103,7 +103,7 @@ CardReader.prototype.read = function(callback) {
           var length = chunk;
           // Finally read the number of bytes to get our id
           var cardId = rs.read(length*2);
-          self.winston.log('info','Card %s is %s', cardId,onOffLabel);
+          self.winston.log('verbose','Card %s is %s', cardId,onOffLabel);
           if(callback){
             callback(cardId,onOffLabel);
           }
@@ -121,11 +121,11 @@ CardReader.prototype.onFoundCard = function(callback) {
   this.read(function(cardId,onOff){
     var card = self.knownCards[cardId];
     if(card){
-      self.winston.log('info',"Found card belonging to %s",card.username);
+      self.winston.log('debug',"Found card belonging to %s",card.username);
       callback(card,onOff);
     }else{
       //TODO: throw? warn only?
-      self.winston.warn("Unknown card found with id %s",cardId);
+      self.winston.log('warn',"Unknown card found with id %s",cardId);
     }
   });
 };
