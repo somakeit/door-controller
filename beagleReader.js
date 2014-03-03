@@ -5,7 +5,7 @@ var b = require('bonescript');
 
 //set up logging
 winston.remove(winston.transports.Console);
-winston.add(winston.transports.Console, {level:'warn', colorize:'false'});
+winston.add(winston.transports.Console, {level:'info', colorize:'false'});
 
 // Options
 var openTime = 10 * 1000; //10 sec open time
