@@ -17,7 +17,8 @@
   },
   "dependencies": {
     "winston": "~0.7.2",
-    "requestify": "~0.1.16"
+    "requestify": "~0.1.16",
+    "underscore": "~1.6.0"
   },
   "devDependencies": {
     "nodeunit": "~0.8.4"

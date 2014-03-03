@@ -1,5 +1,6 @@
 var fs = require('fs');
 var requestify = require('requestify');
+var _ = require('underscore');
 //winston.handleExceptions(); //TODO: need to give explicit handler
 
 function CardReader(params) {
@@ -28,9 +29,14 @@ function CardReader(params) {
 }
 
 CardReader.prototype.destroy = function() {
+  this.destroying=true; //must be a better way to stop the reader trying to reopen the card
+
   // We must unlisten everything we've listened to.
   fs.unwatchFile(this.knownCardsFile, this._knownCardsFileChanged);
   this.readStream.removeAllListeners();
+  if( this.httpRefresIntervalTimer){
+    clearInterval(this.httpRefresIntervalTimer);
+  };
 }
 
 CardReader.prototype._knownCardsFileChanged = function(curr,prev) {
@@ -115,15 +121,36 @@ CardReader.prototype.read = function(callback) {
       }
     }
   });
+  rs.on('end', function(){
+    self.winston.log('warn', 'warning, reached end of card reader device');
+  });
+  rs.on('close', function(){
+    self.winston.log('error', 'error, card reader device closed');
+    //try to reattach again to the device in a few seconds
+    setTimeout( function(){
+      if(! self.destroying){
+        self.winston.log('info', 'attempting to reopen card device');
+        self.readStream = fs.createReadStream(self.device); //TODO throw if unset
+        self.onFoundCard(self.callback);
+      }
+    }, 3000);
+  });
+  rs.on('error', function(error){
+    self.winston.log('error', 'error, card reader device closed', error);
+  });
 };
 
+//TODO: cope with multiple callbacks
 CardReader.prototype.onFoundCard = function(callback) {
+  this.callback = callback;
   var self = this;
   this.read(function(cardId,onOff){
     var card = self.knownCards[cardId];
     if(card){
       self.winston.log('debug',"Found card belonging to %s",card.username);
-      callback(card,onOff);
+      if(callback){
+        callback(card,onOff);
+      }
     }else{
       //TODO: throw? warn only?
       self.winston.log('warn',"Unknown card found with id %s",cardId);
@@ -134,6 +161,7 @@ CardReader.prototype.onFoundCard = function(callback) {
 // set http refresh url and interval, Interval is in minutes
 CardReader.prototype.setHttpRefresher = function(httpurl, refreshinterval) {
   var interval = refreshinterval * 60 * 1000;
+  var self=this;
   
   if(!fs.existsSync("secret")) {
     throw("Error setting up new httpRefresher, secret not set");
@@ -141,21 +169,21 @@ CardReader.prototype.setHttpRefresher = function(httpurl, refreshinterval) {
   this.restSecret = fs.readFileSync('secret', {encoding: "utf8"}).trim();
 
   this._doRefreshCardsFromHttp(httpurl);
-  setTimeout(function() { 
-    this._doRefreshCardsFromHttp(httpurl);
+  this.httpRefresIntervalTimer = setInterval(function() { 
+    self._doRefreshCardsFromHttp(httpurl);
   }, interval);
 }
 
 CardReader.prototype._doRefreshCardsFromHttp = function(httpurl) {
-  this.winston.log('info','loading new file from %s', httpurl);
+  this.winston.log('verbose','loading new file from %s', httpurl);
   var self = this;
   requestify.get( httpurl, {
                cookies: {'SECRET': this.restSecret}
               }).then( function(response) {
     var newCards = response.getBody();
-    self.winston.log('info', "Loaded new cards from http. Found %s cards", Object.keys(newCards).length);
+    self.winston.log('verbose', "Loaded new cards from http. Found %s cards", Object.keys(newCards).length);
     //TODO: validate card data? Probably want to fail if we have less than at least one card listed
-    self._saveNewCards(newCards);
+    self._saveNewCards(newCards, httpurl);
   }).catch(function (error) {
     // Handle any error from all above steps
     self.winston.log('error', 'Got ERROR loading cards from http. Got code ',error.code);
@@ -163,10 +191,11 @@ CardReader.prototype._doRefreshCardsFromHttp = function(httpurl) {
   });
 }
 
-CardReader.prototype._saveNewCards = function(newCards) {
+CardReader.prototype._saveNewCards = function(newCards, fromLocation) {
   var self = this;
-  if(this.knownCards != newCards){
-    this.winston.log('info', "Got a new list of cards, updating");
+  if(! _.isEqual(this.knownCards, newCards)){
+    this.winston.log('info', "Got a new list of cards from %s, updating", fromLocation);
+    this.knownCards = newCards;
     if(this.cardsFile){
       this.winston.log('verbose',"Saving list of new cards to file '%s'", this.cardsFile);
       fs.writeFile(self.cardsFile, JSON.stringify(newCards, null, 4), function(err) {
