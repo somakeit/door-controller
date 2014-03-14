@@ -2,9 +2,9 @@
 Description=Door controller
 
 [Service]
-WorkingDirectory=/home/root/door-controller/
+WorkingDirectory=/root/door-controller/
 EnvironmentFile=/etc/default/node
-ExecStart=/usr/local/bin/node beagleReader.js
+ExecStart=/usr/bin/node beagleReader.js
 Restart=always
 RestartSec=30
 SyslogIdentifier=beagleReader
