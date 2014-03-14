@@ -38,7 +38,7 @@ reader.onFoundCard( function(card,state){
     //Open door, start blinking led
     winston.log('info', "Opening door for user %s", card.fullname)
     b.digitalWrite(door, b.HIGH);
-    blinkTimer = setInterval(blink, 50);
+    var blinkTimer = setInterval(blink, 50);
 
     //After elapsed time, lock door, stop blinking
     setTimeout(function() { 
