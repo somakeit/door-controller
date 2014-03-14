@@ -25,14 +25,15 @@ function CardReader(params) {
   this._loadKnownCardsSync();
 
   //Watch for new file
-  fs.watchFile(this.knownCardsFile, this._knownCardsFileChanged);
+  console.log(this.cardsFile);
+  fs.watchFile(this.cardsFile, this._knownCardsFileChanged);
 }
 
 CardReader.prototype.destroy = function() {
   this.destroying=true; //must be a better way to stop the reader trying to reopen the card
 
   // We must unlisten everything we've listened to.
-  fs.unwatchFile(this.knownCardsFile, this._knownCardsFileChanged);
+  fs.unwatchFile(this.cardsFile, this._knownCardsFileChanged);
   this.readStream.removeAllListeners();
   if( this.httpRefresIntervalTimer){
     clearInterval(this.httpRefresIntervalTimer);
