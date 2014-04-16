@@ -147,6 +147,11 @@ CardReader.prototype.onFoundCard = function(callback) {
   var self = this;
   this.read(function(cardId,onOff){
     var card = self.knownCards[cardId];
+    //if card not found, check for an upper case version
+    if(!card){
+        card = self.knownCards[cardId.toUpperCase()]
+    }
+
     if(card){
       self.winston.log('debug',"Found card belonging to %s",card.username);
       if(callback){
