@@ -8,7 +8,7 @@ winston.remove(winston.transports.Console);
 winston.add(winston.transports.Console, {level:'info', colorize:'false'});
 
 // Options
-var openTime = 4 * 1000; //4 sec open time
+var openTime = 6 * 1000; //4 sec open time
 var door = "P8_10";
 var led = "USR3";
 
