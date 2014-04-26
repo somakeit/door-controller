@@ -12,10 +12,8 @@ of the card. For most ISO/IEC 14443-3 Type A cards it reads only the short v1 id
 7 byte id's, but these are downmapped to a 4 byte id by this reader. This is often described as [cascasde] level 1. 
 This will probably need fixing one day with different hardware
 
-The plan is to run this code from a BeagleBone black. Note that the level of Node.js 0.8 that ships on the BBB is too low,
-so it needs upgrading (building from source can be done in a few hours). There is one other issue on the beaglebones, 
-and that is that the usb stack dies frequently with Angstrom [1](https://github.com/beagleboard/kernel/issues/64) [2](http://o.cs.uvic.ca:20810/perl/cid.pl?cid=1374a430f81a67c5c594c3f3c84c58845ed7caec)
-Arch linux seems fine though.
+We run it on a BeagleBone black. Note that the level of Node.js 0.8 that ships on the BBB is too low,
+so it needs upgrading (building from source can be done in a few hours). We ended up using Arch Linux.
 
 [cascade]: http://www.nxp.com/documents/application_note/AN10927.pdf "MIFARE and handling of UIDs"
 [mirror]: https://en.wikipedia.org/wiki/Mir:ror "Mir:ror on wikipedia"
