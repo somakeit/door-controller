@@ -72,6 +72,16 @@ CardReader.prototype._parseKnownCardsData = function(err, data) {
     var cards = JSON.parse(data);
     if (typeof cards != 'object') throw new Error("data was not an object");
     //TODO: validate card data? Probably want to fail if we have less than at least one card listed
+    var keys = Object.keys(cards);
+    for (var i = 0; i < keys.length; i++) {
+      var key = keys[i];
+      if (!cards[key].keyholder) {
+        delete cards[key];
+      }
+    }
+    if (!Object.keys(cards).length) {
+      throw new Error("No cards");
+    }
     this.knownCards = cards;
     //For some reason via the watchFile callback the above doesn't update us in memory... :s
     this.winston.log('info', "loaded %s cards from file", (Object.keys(this.knownCards)).length);
