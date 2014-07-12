@@ -30,7 +30,7 @@ blink = function() {
 var reader = new CardReader({'device':'/dev/mirror', 'knownCardsFile':'knownCards.json', "winston":winston});
 
 // set http update every 5 minutes
-reader.setHttpRefresher('https://members.somakeit.org.uk/adminapi/cards',5);
+reader.setHttpRefresher('https://members.somakeit.org.uk/rfidcodes',5);
 
 // when we find a card, open the door
 reader.onFoundCard( function(card,state){

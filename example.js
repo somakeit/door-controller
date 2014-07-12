@@ -11,7 +11,7 @@ var reader = new CardReader({'device':'testpipe', 'knownCardsFile':'test.knownCa
 
 //reader.setHttpRefresher('https://github.com/so-make-it/door-controller/raw/master/test.data2', 1);
 //reader.setHttpRefresher('http://localhost:1337/adminapi/cards',1);
-reader.setHttpRefresher('https://members.somakeit.org.uk/adminapi/cards',1);
+reader.setHttpRefresher('https://members.somakeit.org.uk/rfidcodes',1);
 reader.onFoundCard( function(card,state){
   console.log("''%s'' (%s)",card.username,state)
 });
