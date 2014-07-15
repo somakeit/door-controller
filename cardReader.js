@@ -193,9 +193,11 @@ CardReader.prototype.onFoundCard = function(callback) {
 
 CardReader.prototype.notifyAPI = function(data) {
   this.winston.log('debug',"Should send the following to the API: %2", JSON.stringify(data));
+  requestify.post(this.httpurl + "/open", data, {cookies: {'SECRET': this.restSecret}});
 };
 // set http refresh url and interval, Interval is in minutes
 CardReader.prototype.setHttpRefresher = function(httpurl, refreshinterval) {
+  this.httpurl = httpurl;
   var interval = refreshinterval * 60 * 1000;
   var self=this;
   
