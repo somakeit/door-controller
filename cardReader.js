@@ -155,7 +155,22 @@ CardReader.prototype.read = function(callback) {
 CardReader.prototype.onFoundCard = function(callback) {
   this.callback = callback;
   var self = this;
+  var debounceTime = null;
+  var debounceCode = null;
   this.read(function(cardId,onOff){
+    // Don't trigger card read loads of times in a row
+    if (debounceTime && (+new Date() - +debounceTime) > 5*1000) {
+      // Debounce has elapsed, clear it
+      debounceTime = null;
+      debounceCode = null;
+    }
+    if (cardId == debounceCode) {
+      // We're being debounced, abort
+      return;
+    }
+    debounceCode = cardId;
+    debounceTime = new Date();
+
     var card = self.knownCards[cardId];
     //if card not found, check for an upper case version
     if(!card){
