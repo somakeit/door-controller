@@ -177,18 +177,23 @@ CardReader.prototype.onFoundCard = function(callback) {
         card = self.knownCards[cardId.toUpperCase()]
     }
 
-    if(card){
+    if(card && card.user_id) {
+      self.notifyAPI({rfidcode: cardId, user_id: card.user_id, location: 'DOOR1', successful: "1", when: +new Date()});
       self.winston.log('debug',"Found card belonging to %s",card.username);
       if(callback){
         callback(card,onOff);
       }
     }else{
+      self.notifyAPI({rfidcode: cardId, location: 'DOOR1', successful: "0", when: +new Date()});
       //TODO: throw? warn only?
       self.winston.log('warn',"Unknown card found with id %s",cardId);
     }
   });
 };
 
+CardReader.prototype.notifyAPI = function(data) {
+  this.winston.log('debug',"Should send the following to the API: %2", JSON.stringify(data));
+};
 // set http refresh url and interval, Interval is in minutes
 CardReader.prototype.setHttpRefresher = function(httpurl, refreshinterval) {
   var interval = refreshinterval * 60 * 1000;
