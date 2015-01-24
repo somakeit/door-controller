@@ -4,7 +4,9 @@ var requestify = require('requestify');
 var fs = require('fs');
 var gpio = require('pi-gpio');
 
-var SECRET = fs.readFileSync('secret', {encoding: "utf8"}).trim();
+process.chdir(__dirname);
+
+var SECRET = fs.readFileSync('./secret', {encoding: "utf8"}).trim();
 var DATABASE_FILE = "./database.json";
 var LOCK_PIN = 7;
 var LOCK_OPEN_TIME = 6 * 1000;

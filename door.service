@@ -1,0 +1,11 @@
+[Unit]
+Description=Door entry system
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/node /root/door-entry/index.js
+Restart=always
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target
