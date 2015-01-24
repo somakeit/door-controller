@@ -25,21 +25,41 @@ var Keypad = new events.EventEmitter();
 
 module.exports = Keypad;
 
-async.parallel({
+function ignoreErrors(fn) {
+  return function() {
+    fn()
+  }
+}
+
+async.series({
+  clearColumns: function(done) {
+    console.log("Closing columns");
+    async.mapSeries(columns, function(pin, next) {
+      gpio.close(pin, ignoreErrors(next));
+    }, done);
+  },
+  clearRows: function(done) {
+    console.log("Closing rows");
+    async.mapSeries(rows, function(pin, next) {
+      gpio.close(pin, ignoreErrors(next));
+    }, done);
+  },
   setupColumns: function(done) {
-    async.map(columns, function(pin, next) {
+    console.log("Opening columns");
+    async.mapSeries(columns, function(pin, next) {
       gpio.open(pin, "output", function(err) {
-        if (err) return next(err);
         gpio.write(pin, false, next);
       });
     }, done);
   },
   setupRows: function(done) {
-    async.map(rows, function(pin, next) {
-      gpio.open(pin, "input pulldown", next);
+    console.log("Opening rows");
+    async.mapSeries(rows, function(pin, next) {
+      gpio.open(pin, "input pulldown", ignoreErrors(next));
     }, done);
   }
-}, function() {
+}, function(err) {
+  console.log("READY!");
   Keypad.ready = true;
   Keypad.emit('ready');
   // Main
@@ -75,7 +95,6 @@ async.parallel({
         var char = String(table[match[1]][match[0]]);
         entry = entry || "";
         if (char == "#" && entry) {
-          console.log("PIN DETECTED: " + entry);
           Keypad.emit('pin', entry);
           entry = null;
         } else {
