@@ -1,20 +1,36 @@
-door-controller
+Door Controller
 ===============
 
-door controller for So Make It
+Door controller for Southampton Makerspace.
 
-This is the first pass at the rfid door entry system for So Make It.
+**NOTE**: If you're looking for the RFID version, check the [rfid
+branch](https://github.com/somakeit/door-controller/tree/rfid) - we've
+since switched over to a PIN entry system instead.
 
-The main rfid read is currently a usb [Violet Mir:ror][mirror] (see [images] for some pictures). 
-It is a usb hidraw device which spits out a stream of hex data. Mostly nulls. When it encounters a card it sends a few 
-control bytes, which also indicate if the card added or removed (3 cards can be concurrently read), followed by the id
-of the card. For most ISO/IEC 14443-3 Type A cards it reads only the short v1 id field. Many cards actually have longer
-7 byte id's, but these are downmapped to a 4 byte id by this reader. This is often described as [cascasde] level 1. 
-This will probably need fixing one day with different hardware
+Keypad
+------
 
-We run it on a BeagleBone black. Note that the level of Node.js 0.8 that ships on the BBB is too low,
-so it needs upgrading (building from source can be done in a few hours). We ended up using Arch Linux.
+We're currently using a 3x4 matrix keypad hooked up to the Raspberry
+Pi GPIO headers.
 
-[cascade]: http://www.nxp.com/documents/application_note/AN10927.pdf "MIFARE and handling of UIDs"
-[mirror]: https://en.wikipedia.org/wiki/Mir:ror "Mir:ror on wikipedia"
-[images]: https://www.google.co.uk/search?q=violet+mirror&espv=2&es_sm=125&tbm=isch&tbo=u&source=univ&sa=X&ei=89MmU5OnOYuqhAfjsoDYDw&ved=0CC8QsAQ&biw=1680&bih=891#q=violet+mir:ror&tbm=isch "Google image search"
+![Matrix keypad](http://www.adafruit.com/images/970x728/419-00.jpg)
+
+Strike
+------
+
+We use a transistor hooked to a GPIO in order to energise a relay which
+releases the DC strike so the door can open.
+
+Wiring
+------
+
+Using regular pin numbering:
+
+The keypad columns are hooked up from left to right to pins 16, 18 and
+22.
+
+The keypad rows are hooked up from top to bottom to pins 11, 12, 13 and
+15.
+
+The latch is triggered on pin 7 (but it also requires 5V (pin 2) and
+ground (pin 6) connections).
