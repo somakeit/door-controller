@@ -63,7 +63,7 @@ gpio.close(LOCK_PIN, function(err) {
         successful: '0',
         when: +new Date()
       };
-      requestify.post(databaseUpdateUrl + "/open", body, {cookies: {'SECRET': this.restSecret}});
+      requestify.post(databaseUpdateUrl + "/open", body, {cookies: {'SECRET': SECRET}});
     }
 
     function success(data) {
@@ -78,7 +78,7 @@ gpio.close(LOCK_PIN, function(err) {
         successful: '1',
         when: +new Date()
       };
-      requestify.post(databaseUpdateUrl + "/open", body, {cookies: {'SECRET': this.restSecret}});
+      requestify.post(databaseUpdateUrl + "/open", body, {cookies: {'SECRET': SECRET}});
 
       // Wait a while
       setTimeout(function() {
