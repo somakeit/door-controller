@@ -5,7 +5,7 @@ var async = require('async');
 var columns = [
   '16',
   '18',
-  '22'
+  '7'
 ];
 var rows = [
   '11',
