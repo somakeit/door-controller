@@ -3,9 +3,9 @@ var gpio = require('pi-gpio');
 var async = require('async');
 
 var columns = [
-  '8',
-  '10',
-  '12'
+  '3',
+  '5',
+  '8'
 ];
 var rows = [
   '11',
